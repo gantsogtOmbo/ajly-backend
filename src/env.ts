@@ -3,6 +3,7 @@ import z from "zod";
 const envSchema = z.object({
   PORT: z.string().default("3000"),
   DATABASE_URL: z.string(),
+  FIREBASE_SERVICE_ACCOUNT: z.string().optional(),
 });
 
 export type env = z.infer<typeof envSchema>;
