@@ -108,8 +108,12 @@ export const userService = {
   },
 
   setRole: async (id: string, role: "job_seeker" | "employer") => {
-    const [updated] = await db.update(users).set({ role }).where(eq(users.id, id)).returning();
-    return updated;
+    const [user] = await db
+      .insert(users)
+      .values({ id, role })
+      .onConflictDoUpdate({ target: users.id, set: { role } })
+      .returning();
+    return user;
   },
 
   updatePersonal: async (
