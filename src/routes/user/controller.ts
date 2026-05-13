@@ -5,7 +5,7 @@ import { personalModels, roleModels, surveyModels, workExpModels } from "./model
 
 export const usersController = new Elysia({ prefix: "/users" })
   .use(auth)
-  .get("/me", ({ user }) => userService.upsertMe(user.uid, user.name, user.phone))
+  .get("/me", ({ user }) => userService.upsertMe(user.uid))
   .get("/", () => userService.getAll())
   .get("/:id", ({ params: { id } }) => userService.getById(id), {
     params: t.Object({ id: t.String() }),

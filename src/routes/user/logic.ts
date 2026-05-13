@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import db from "../../db";
 import { userSurveys, users } from "../../db/schema";
 
@@ -90,20 +90,11 @@ export const userService = {
     return await db.insert(users).values(data).returning();
   },
 
-  upsertMe: async (uid: string, name: string | null, phone: string | null) => {
-    const nameParts = name?.trim().split(/\s+/) ?? [];
-    const firstName = nameParts[0] ?? null;
-    const lastName = nameParts.slice(1).join(" ") || null;
-
-    const [user] = await db
-      .insert(users)
-      .values({ id: uid, phone, firstName, lastName })
-      .onConflictDoUpdate({
-        target: users.id,
-        set: { updatedAt: new Date() },
-      })
-      .returning();
-
+  upsertMe: async (uid: string) => {
+    // Raw SQL insert — avoids any schema drift issues (only id is guaranteed)
+    await db.execute(sql`INSERT INTO users (id) VALUES (${uid}) ON CONFLICT (id) DO NOTHING`);
+    const [user] = await db.select().from(users).where(eq(users.id, uid));
+    if (!user) throw new Error(`User ${uid} not found after upsert`);
     return user;
   },
 
