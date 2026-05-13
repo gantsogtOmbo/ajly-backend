@@ -90,6 +90,23 @@ export const userService = {
     return await db.insert(users).values(data).returning();
   },
 
+  upsertMe: async (uid: string, name: string | null, phone: string | null) => {
+    const nameParts = name?.trim().split(/\s+/) ?? [];
+    const firstName = nameParts[0] ?? null;
+    const lastName = nameParts.slice(1).join(" ") || null;
+
+    const [user] = await db
+      .insert(users)
+      .values({ id: uid, phone, firstName, lastName })
+      .onConflictDoUpdate({
+        target: users.id,
+        set: { updatedAt: new Date() },
+      })
+      .returning();
+
+    return user;
+  },
+
   setRole: async (id: string, role: "job_seeker" | "employer") => {
     const [updated] = await db.update(users).set({ role }).where(eq(users.id, id)).returning();
     return updated;
